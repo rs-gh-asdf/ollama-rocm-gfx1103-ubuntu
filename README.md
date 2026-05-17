@@ -2,7 +2,7 @@
 
 Native ROCm acceleration for [Ollama](https://github.com/ollama/ollama) on the AMD **Radeon 780M iGPU** (`gfx1103`, the integrated GPU in Ryzen 7040 / 8040 / Phoenix series), on Ubuntu Linux.
 
-This repo is a one-command setup that automates a process documented in detail in [this blog post](https://example.com/your-post-here). If you've got a Phoenix iGPU and want to run local LLMs on it without falling back to CPU, this is for you.
+This repo is a one-command setup that automates a process documented in detail in [this blog post](https://ataary.com/ubuntu-linux-with-ollama-rocm-on-amd-ryzen-780m-igpu/). If you've got a Phoenix iGPU and want to run local LLMs on it without falling back to CPU, this is for you.
 
 ## What it does
 
@@ -102,7 +102,7 @@ The first patch — sort by free memory — has been submitted upstream to Ollam
 - [Fedora rocblas package](https://packages.fedoraproject.org/pkgs/rocblas/) — where the gfx1103 kernels come from
 - [likelovewant/ollama-for-amd](https://github.com/likelovewant/ollama-for-amd) — the Ollama fork with broader AMD GPU support
 - [likelovewant/ROCmLibs-for-gfx1103-AMD780M-APU](https://github.com/likelovewant/ROCmLibs-for-gfx1103-AMD780M-APU) — Windows-focused but useful background
-- [Blog post writeup](https://example.com/your-post-here) — the full story of why each piece is necessary
+- [Blog post writeup](https://ataary.com/ubuntu-linux-with-ollama-rocm-on-amd-ryzen-780m-igpu/) — the full story of why each piece is necessary
 
 ## License
 
