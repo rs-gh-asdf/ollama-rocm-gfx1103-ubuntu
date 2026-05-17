@@ -1,0 +1,42 @@
+From: johnsonfarmsus
+Subject: [PATCH] ml/device: respect parent env ROCR_VISIBLE_DEVICES
+
+updateVisibleDevicesEnv builds extraEnvs for the model-load runner using the
+chosen device's FilterID. If the parent process (Ollama main, started from
+systemd) already pre-filtered with ROCR_VISIBLE_DEVICES=N, the chosen device
+in Ollama's view has been re-indexed to FilterID=0. Setting
+ROCR_VISIBLE_DEVICES=0 in the spawned runner — which has a fresh,
+unfiltered view — points it at physical device 0, which is the WRONG GPU
+on systems where the user intentionally pinned to a non-zero index.
+
+When the parent env already pins ROCR_VISIBLE_DEVICES, leave it alone.
+Ollama's per-process filtering is a no-op on top of the parent's pin.
+
+---
+ ml/device.go | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/ml/device.go b/ml/device.go
+--- a/ml/device.go
++++ b/ml/device.go
+@@ -1,6 +1,7 @@
+ package ml
+
+ import (
++	"os"
+ 	"context"
+ 	"encoding/binary"
+ 	"encoding/json"
+@@ -581,6 +582,11 @@ func (d DeviceInfo) updateVisibleDevicesEnv(env map[string]string, mustFilter bo
+ 		if runtime.GOOS != "linux" {
+ 			envVar = "HIP_VISIBLE_DEVICES"
+ 		}
++		// Respect a systemd-set ROCR_VISIBLE_DEVICES from parent env.
++		// Overriding with the post-filter FilterID re-indexes and would point
++		// the model-load runner at the wrong physical device.
++		if os.Getenv(envVar) != "" {
++			return
++		}
+ 	case "CUDA":
+ 		if !mustFilter {
+ 			// By default we try to avoid filtering CUDA devices because ROCm also

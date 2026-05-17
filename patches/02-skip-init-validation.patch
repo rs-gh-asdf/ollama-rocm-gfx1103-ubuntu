@@ -1,0 +1,36 @@
+From: johnsonfarmsus
+Subject: [PATCH] ml/device: skip GGML_CUDA_INIT deep-init validation
+
+AddInitValidation sets GGML_CUDA_INIT=1, which triggers rocblas_initialize()
+during the discovery sub-process. The intent is to crash the runner on
+unsupported devices so they get filtered out of the candidate list.
+
+This works against us in two cases:
+  1. When parent env pins ROCR_VISIBLE_DEVICES to a known-good iGPU, the
+     validation can still crash if the bundled rocBLAS lacks kernels for
+     the specific arch (this is true for gfx1103 with mainline ROCm).
+  2. When the user has supplemented system rocBLAS with kernels for the
+     target arch (e.g. dropping in Fedora's gfx1103 Tensile files), the
+     "deep init crash detection" is redundant — the real test is whether
+     model load succeeds.
+
+With this patched out, devices that fail at actual model load still get
+caught (Ollama logs the runner termination), and devices that work get
+to run.
+
+---
+ ml/device.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ml/device.go b/ml/device.go
+--- a/ml/device.go
++++ b/ml/device.go
+@@ -557,7 +557,7 @@ func (d DeviceInfo) NeedsInitValidation() bool {
+
+ // Set the init validation environment variable
+ func (d DeviceInfo) AddInitValidation(env map[string]string) {
+-	env["GGML_CUDA_INIT"] = "1" // force deep initialization to trigger crash on unsupported GPUs
++	// env["GGML_CUDA_INIT"] = "1" // patched out — parent ROCR_VISIBLE_DEVICES handles filtering
+ }
+
+ // PreferredLibrary returns true if this library is preferred over the other input

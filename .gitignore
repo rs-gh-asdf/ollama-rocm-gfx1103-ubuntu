@@ -1,0 +1,13 @@
+# Build artifacts (the setup script puts these in $HOME/ollama-rocm-gfx1103-build by default)
+ollama-for-amd/
+fedora-rocblas/
+*.rpm
+*.7z
+
+# Editor cruft
+.DS_Store
+*.swp
+*~
+
+# Local-only overrides
+override.local.conf

@@ -1,0 +1,32 @@
+From: johnsonfarmsus
+Subject: [PATCH] ml/device: sort GPU devices purely by free memory
+
+The default ByFreeMemory.Less function unconditionally ranks integrated GPUs
+as "less than" discrete GPUs, regardless of free memory. After sort.Reverse(),
+this means discrete GPUs are always preferred — which is wrong on systems
+where the iGPU has more usable memory than the dGPU, and especially wrong
+where the dGPU is an unsupported ROCm arch (e.g. RDNA1 alongside a Phoenix
+iGPU on a Ryzen 7040/8040 series box).
+
+Sort purely by FreeMemory so the device with more headroom wins, regardless
+of integrated-vs-discrete classification.
+
+---
+ ml/device.go | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/ml/device.go b/ml/device.go
+--- a/ml/device.go
++++ b/ml/device.go
+@@ -365,11 +365,6 @@ type ByFreeMemory []DeviceInfo
+ func (a ByFreeMemory) Len() int      { return len(a) }
+ func (a ByFreeMemory) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+ func (a ByFreeMemory) Less(i, j int) bool {
+-	if a[i].Integrated && !a[j].Integrated {
+-		return true
+-	} else if !a[i].Integrated && a[j].Integrated {
+-		return false
+-	}
+ 	return a[i].FreeMemory < a[j].FreeMemory
+ }
+
